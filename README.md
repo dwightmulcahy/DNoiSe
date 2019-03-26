@@ -7,7 +7,10 @@ DNS noise generator that looks at your network activity and blends in. Requires 
 
 ## Dependencies
 ```
-pip install pandas (raspberry pi users should use 'sudo apt-get install python-pandas' instead)
+# on raspberry pi
+sudo apt-get install python-pip
+
+pip install pandas 
 pip install requests
 pip install dnspython
 ```
