@@ -9,7 +9,6 @@ import codecs
 import pandas
 import urllib
 import random
-import zipfile
 import sqlite3
 import datetime
 import requests
@@ -56,31 +55,19 @@ def download_domains():
 		print >> log_file, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.mktime(datetime.datetime.now().timetuple())))+" Can't download the domain list. Quitting."
 		exit()
 	
-	# Unzip the list
+	# Create a SQLite database and import the domain list
 	try:
-		print >> log_file, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.mktime(datetime.datetime.now().timetuple())))+" Unzipping…"
-		zip_ref = zipfile.ZipFile(working_directory+"domains.zip", "r")
-		zip_ref.extractall(working_directory)
-		zip_ref.close()
-		
-		os.remove(working_directory+"domains.zip")
-	except:
-		print >> log_file, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.mktime(datetime.datetime.now().timetuple())))+" Extraction failed. Quitting."
-		exit()
-	
-	# Create a SQLite database
-	try:
-		db = sqlite3.connect(working_directory+"domains.sqlite")
+		db = sqlite3.connect(working_directory + "domains.sqlite")
 		db.execute("CREATE TABLE Domains (ID INT PRIMARY KEY, Domain TEXT)")
 		
 		# Load the CSV into our database
 		print >> log_file, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.mktime(datetime.datetime.now().timetuple())))+" Importing to sqlite…"
-		df = pandas.read_csv(working_directory+"top-1m.csv", names = ["ID", "Domain"])
+		df = pandas.read_csv(working_directory + "domains.zip", compression = 'zip', names = ["ID", "Domain"])
 		df.to_sql("Domains", db, if_exists = "append", index = False)
 	
 		db.close()
 	
-		os.remove(working_directory+"top-1m.csv")
+		os.remove(working_directory + "domains.zip")
 	except:
 		print >> log_file, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.mktime(datetime.datetime.now().timetuple())))+" Import failed. Quitting."
 		exit()
@@ -99,7 +86,7 @@ while True:
 		time.sleep(10)
 
 # Download the top 1M domain list if we don't have it yet.
-exists = os.path.isfile(working_directory+"domains.sqlite")
+exists = os.path.isfile(working_directory + "domains.sqlite")
 if exists == False:
 	download_domains()
 
